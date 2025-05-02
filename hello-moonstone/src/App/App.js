@@ -1,10 +1,14 @@
 import kind from '@enact/core/kind';
-import MoonstoneDecorator from '@enact/moonstone/MoonstoneDecorator';
 import { Panel, Header } from '@enact/moonstone/Panels';
 import { Button } from '@enact/moonstone/Button';
-//import MainPanel from '../views/MainPanel';
+import { Spinner } from '@enact/moonstone/Spinner';
+import MoonstoneDecorator from '@enact/moonstone/MoonstoneDecorator';
+import React from 'react';
 
 import css from './App.module.less';
+import buttonstyles from './Button.module.less';
+import spinnerstyles from './Spinner.module.less';
+
 
 const AppBase = kind({
 	name: 'App',
@@ -18,7 +22,8 @@ const AppBase = kind({
 		return (
 			<Panel className={css['main-panel']} header={<Header title="Hello Moonstone!" />}>
                 <div className={props.className}>
-                    <Button>Click Me!</Button>
+                    <Button className={buttonstyles['button']}>Click Me!</Button>
+					<Spinner className={spinnerstyles['spinner']} size="large" />
                 </div>
             </Panel>
 		);
