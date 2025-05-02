@@ -7,5 +7,6 @@
 	"title": "Hello Moonstone",
 	"icon": "icon.png",
 	"miniicon": "icon-mini.png",
-	"largeIcon": "icon-large.png"
+	"largeIcon": "icon-large.png",
+	"iconColor": "#6699ff"
 }
