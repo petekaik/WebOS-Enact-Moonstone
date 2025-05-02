@@ -1,0 +1,11 @@
+{
+	"id": "hello-moonstone",
+	"version": "1.0.0",
+	"vendor": "MorgeWeb",
+	"type": "web",
+	"main": "index.html",
+	"title": "Hello Moonstone",
+	"icon": "icon.png",
+	"miniicon": "icon-mini.png",
+	"largeIcon": "icon-large.png"
+}

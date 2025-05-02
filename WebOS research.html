@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LG webOS 4.x App Development (OLED65C8) – Hello World</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+      line-height: 1.6;
+      margin: 20px;
+      max-width: 900px;
+    }
+    h1, h2, h3 {
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+    }
+    p, ul, ol {
+      margin-top: 1em;
+      margin-bottom: 1em;
+    }
+    code {
+      font-family: 'Courier New', Courier, monospace;
+      background-color: #f4f4f4;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-size: 1em;
+    }
+    pre {
+      background-color: #f4f4f4;
+      padding: 1em;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 16px;
+      margin-top: 1em;
+      margin-bottom: 1em;
+    }
+    pre code {
+      padding: 0;
+      background: none;
+      font-size: 16px;
+      display: block;
+      white-space: pre-wrap;
+    }
+    a {
+      color: #0066cc;
+      text-decoration: none;
+      word-break: break-all;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .copy-btn:hover {
+      background-color: #004999;
+    }
+    .code-container {
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+<h1>Developing Apps for LG OLED65C8 (webOS TV 4.x)</h1>
+<p>The LG OLED65C8 (2018) runs webOS TV 4.x. Its web engine is Chromium&nbsp;53 (approximately Chrome&nbsp;53) (<a href="https://webostv.developer.lge.com/develop/specifications/web-api-and-web-engine#web-engine%23:~:text=Mozilla%252F5,36%2520WebAppManager" target="_blank" rel="noopener noreferrer">webostv.developer.lge.com</a>), so modern JavaScript and CSS may require transpilation/polyfills. LG’s current SDK and tools support webOS 4.x apps, and the recommended approach uses the webOS CLI (ares) with Node.js. This guide covers the latest SDK/CLI, compatible frameworks, setup steps, and a “Hello World” tutorial using VSCode and Node.js on a local machine.</p>
+
+<h2>Official SDKs, CLI Tools, and Frameworks</h2>
+<p>LG’s webOS development now centers on the <strong>webOS CLI</strong> (formerly called ares). The older “webOS TV CLI” (part of legacy SDKs) was deprecated in 2024. In fact, LG states: <em>“we decided to no longer support webOS TV CLI from March, 2024. We recommend that you use the webOS CLI instead.”</em> (<a href="https://webostv.developer.lge.com/develop/tools/webos-tv-cli-installation#:~:text=Caution%3A%20webOS%20TV%20CLI%20Deprecation" target="_blank" rel="noopener noreferrer">webostv.developer.lge.com</a>) (<a href="https://webostv.developer.lge.com/develop/tools/cli-installation#:~:text=CLI%20can%20be%20installed%20using,to%20install%20the%20CLI%20globally" target="_blank" rel="noopener noreferrer">webostv.developer.lge.com</a>). The webOS CLI is distributed via npm as <code>@webos-tools/cli</code>. Install it with Node.js (LTS v16 or later):</p>
+<pre class="code-container">
+  <code>npm install -g @webos-tools/cli</code>
+  <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+</pre>
+<p>After installation, verify with <code>ares -V</code>. The CLI has been tested on Node.js v14 and v16 (<a href="https://github.com/webos-tools/cli#:~:text=The%20%40webos,npm" target="_blank" rel="noopener noreferrer">github.com</a>), so using a current LTS (v16 or v18) is safest. LG recommends always using the latest CLI version, which is backward-compatible with webOS TV 4.x (and newer) (<a href="https://github.com/webos-tools/cli#:~:text=Compatibility" target="_blank" rel="noopener noreferrer">github.com</a>).</p>
+
+<ul>
+  <li><strong>Node.js:</strong> Use the latest LTS release (v16 or v18). The webOS CLI has been tested on Node v14.15.1 and v16.20.2 (<a href="https://github.com/webos-tools/cli#:~:text=The%20%40webos,npm" target="_blank" rel="noopener noreferrer">github.com</a>).</li>
+  <li><strong>webOS CLI:</strong> Install with npm as above (<a href="https://webostv.developer.lge.com/develop/tools/cli-installation#:~:text=CLI%20can%20be%20installed%20using,to%20install%20the%20CLI%20globally" target="_blank" rel="noopener noreferrer">webostv.developer.lge.com</a>). This replaces the old webOS Studio/IDE. (The older CLI downloads for Windows/macOS are deprecated.)</li>
+  <li><strong>Device Connection:</strong> The CLI includes <code>ares-setup-device</code> and <code>ares-novacom</code> to add and authenticate your TV.</li>
+</ul>
+<p>No official LG emulator is recommended for webOS 4.x; the legacy Simulator (from WebOS Studio) is deprecated. Testing should be done on a real TV (or the newer webOS OSE emulator, which targets Open-Source Edition on hardware like Raspberry Pi).</p>
+
+<h2>Frontend Frameworks and Libraries</h2>
+<p>webOS TV apps are just HTML/CSS/JS; you can use any framework that outputs compatible code. LG’s official UI framework is <strong>Enact</strong> (a React-based SDK) which provides TV-tailored components (e.g. Moonstone theme, spotlight navigation) and a webOS support library (<a href="https://enactjs.com/docs/#:~:text=Libraries" target="_blank" rel="noopener noreferrer">enactjs.com</a>). Enact apps use React/JSX and are built with webpack/Babel, producing ES5 code for older engines. Using Enact is recommended for larger apps, but not required.</p>
+<p>Other options:</p>
+<ul>
+  <li><strong>Vanilla or PWA:</strong> You can write a simple HTML/JS app. Ensure you avoid unsupported features or use a transpiler. For example, ES6 classes or modules may need Babel, since webOS&nbsp;4.x’s Chromium&nbsp;53 does not support all ES2015+ features.</li>
+  <li><strong>Third-party frameworks:</strong> Angular, Vue, Svelte, etc. can be used if you bundle/transpile their output to ES5. The app is packaged as a static bundle anyway. Note that older web engines may lack features like modern CSS grid or Flexbox; test accordingly.</li>
+  <li><strong>LG webOS libraries:</strong> If your app needs to call TV APIs (e.g. Luna services), use LG’s <code>webos</code> service libraries from Enact (e.g. <code>webos/service</code>) or <code>webos.js</code>. These simplify interactions with the TV (launching channels, getting system info, etc).</li>
+</ul>
+<p>For example, Enact’s packages include <code>moonstone</code> (TV UI components) and <code>webos</code> (service APIs) (<a href="https://enactjs.com/docs/#:~:text=Libraries" target="_blank" rel="noopener noreferrer">enactjs.com</a>). When future-proofing, note that newer webOS versions (5.x, 6.x, 22 etc.) use more recent Chromium (68, 79, 87, etc. as shown in the table <a href="https://webostv.developer.lge.com/develop/specifications/web-api-and-web-engine#web-engine%23:~:text=Mozilla%252F5,36%2520WebAppManager" target="_blank" rel="noopener noreferrer">webostv.developer.lge.com</a>), so code written for 4.x should also work on newer TVs. Always test on your target OS version.</p>
+
+<h2>Setting Up the Development Environment</h2>
+<h3>1. Install Node.js and the webOS CLI</h3>
+<p>On your development PC (Windows/Linux/macOS), install Node.js (download from <code>nodejs.org</code>). Then open a terminal and install the webOS CLI:</p>
+<pre class="code-container">
+  <code>npm install -g @webos-tools/cli</code>
+  <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+</pre>
+<p>After installing, confirm the CLI is available:</p>
+<pre class="code-container">
+  <code>ares -V</code>
+  <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+</pre>
+<p>You should see a version number (1.12.4 or later). If you have an old webOS OSE or TV CLI installed, remove it first (e.g. <code>npm uninstall -g @webosose/ares-cli</code>) to avoid conflicts (<a href="https://webostv.developer.lge.com/develop/tools/cli-installation#:~:text=Caution" target="_blank" rel="noopener noreferrer">webostv.developer.lge.com</a>).</p>
+
+<h3>2. Enable Developer Mode on the TV</h3>
+<h2>Using Volta to Manage Node.js Versions</h2>
+<p>If your system Node.js version is too new (e.g., v22), you can use <strong>Volta</strong>, a Node.js version manager, to install and pin an older compatible version like v16 for your webOS development project.</p>
+<ol>
+  <li><strong>Install Volta:</strong> Open your terminal and run:
+    <pre class="code-container"><code>curl https://get.volta.sh | bash</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+    Restart your terminal to ensure Volta is available.
+  </li>
+  <li><strong>Install Node.js v16:</strong>
+    <pre class="code-container"><code>volta install node@16</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+    This installs Node.js v16 and makes it available via Volta.
+  </li>
+  <li><strong>Create a <code>package.json</code> file:</strong> Volta requires a <code>package.json</code> file to pin Node versions. If it doesn't exist yet in your project directory, create one by running:
+    <pre class="code-container"><code>npm init -y</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+    This generates a default <code>package.json</code> file.
+  </li>
+  <li><strong>Pin Node.js to the project:</strong> With a <code>package.json</code> file present, pin the version using:
+    <pre class="code-container"><code>volta pin node@16</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+    This pins the Node version for the project and updates <code>package.json</code> under a <code>"volta"</code> field.
+  </li>
+  <li><strong>Verify the Node version:</strong>
+    <pre class="code-container"><code>node -v
+volta list</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+    The output should show Node v16.x.x as the current version, and confirm that it is pinned for the project.
+  </li>
+</ol>
+<p>Now, all Node.js and npm commands in this project directory will use Node v16, regardless of your system-wide version. This avoids compatibility issues with the webOS CLI and Enact tooling.</p>
+<p>To deploy apps, your TV must be in Developer Mode. Steps:</p>
+<ul>
+  <li><strong>Developer Account:</strong> Create an LG Developer account at <a href="https://webostv.developer.lge.com" target="_blank" rel="noopener noreferrer">webOS TV Developer</a>. (This is used to log into the Developer Mode app.)</li>
+  <li><strong>Developer Mode App:</strong> On the TV, open the LG Content Store and search for “Developer Mode.” Install and launch it.</li>
+  <li><strong>Login & Enable:</strong> In the Developer Mode app on the TV, sign in with your LG account. Turn on Developer Mode and enable the Key Server. The TV will reboot. </li>
+  <li><strong>Passphrase:</strong> After reboot, open Developer Mode again. Make sure “Dev Mode Status” is ON and note the passphrase displayed on screen.</li>
+</ul>
+<p>Now the TV is ready to accept sideloaded apps. The developer guide notes that for webOS TV&nbsp;3.0 and above, you test on the actual device via the Developer Mode app (<a href="https://webostv.developer.lge.com/develop/tools/cli-dev-guide#:~:text=From%20webOS%20TV%203,information%2C%20see%20Developer%20Mode%20App" target="_blank" rel="noopener noreferrer">webostv.developer.lge.com</a>).</p>
+
+<h3>3. Connect the CLI to the TV</h3>
+<p>Ensure your PC and TV are on the same local network. On your PC:</p>
+<ul>
+  <li><strong>Add the TV as a device:</strong> Choose a name (e.g. <code>myTV</code>) and run:</li>
+  <pre class="code-container">
+    <code>ares-setup-device --add myTV -i "host=TV_IP_address" -i "port=9922" -i "username=developer"</code>
+    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+  </pre>
+  <p>(Replace <code>TV_IP_address</code> with your TV’s IP; port is usually 9922; the SSH user is <code>developer</code>.) LG’s docs give an example format (<a href="https://webostv.developer.lge.com/develop/tools/cli-dev-guide#:~:text=ares,i%20%22username%3Dprisoner" target="_blank" rel="noopener noreferrer">webostv.developer.lge.com</a>).</p>
+  <li><strong>Retrieve the developer key:</strong> Run:</li>
+  <pre class="code-container">
+    <code>ares-novacom --device myTV --getkey</code>
+    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+  </pre>
+  <p>This initiates a key exchange. Enter the passphrase you saw on the TV’s Developer Mode screen. This command “gets a private key from webOS TV for the Developer Mode app,” allowing the CLI to sign and install apps (<a href="https://webostv.developer.lge.com/develop/tools/cli-dev-guide#:~:text=ares" target="_blank" rel="noopener noreferrer">webostv.developer.lge.com</a>).</p>
+  <li><strong>Verify the connection (optional):</strong> Check if the device responds:</li>
+  <pre class="code-container">
+    <code>ares-device-info --device myTV</code>
+    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+  </pre>
+  <p>You should see device info (model, version). If there are errors, re-check the IP, network, and passphrase.</p>
+</ul>
+
+<h2>Hello World App: Step-by-Step Guide</h2>
+
+<h3>Getting Available Versions for Enact CLI</h3>
+<p>To find all available versions of the Enact CLI, use the following npm command:</p>
+<pre class="code-container">
+  <code>npm show @enact/cli versions --json</code>
+  <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+</pre>
+<p>This will output a JSON array of all published versions. For Enact v1.13, the latest compatible CLI version is <strong>1.13.4</strong>.</p>
+
+<h3>Installing Enact CLI Version 1.13.4</h3>
+<p>To install the compatible version of Enact CLI, use the following command:</p>
+<pre class="code-container">
+  <code>npm install -g @enact/cli@1.13.4</code>
+  <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+</pre>
+<p>This ensures compatibility with Enact v1.13 and webOS TV 4.x.</p>
+
+<p>To verify the installed version of Enact CLI, run:</p>
+<pre class="code-container">
+  <code>enact --version</code>
+  <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+</pre>
+<p>The output should display <code>1.13.4</code>.</p>
+
+<h3>Installing a Known Supported Version of Enact CLI</h3>
+<p>Once you identify the compatible version, install it using the following command:</p>
+<pre class="code-container">
+  <code>npm install -g @enact/cli@1.2.3</code>
+  <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+</pre>
+<p>Replace <code>1.2.3</code> with the desired version number. This ensures compatibility with the latest Enact v1.x framework.</p>
+
+<p>To verify the installed version of Enact CLI, run:</p>
+<pre class="code-container">
+  <code>enact --version</code>
+  <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+</pre>
+<p>The output should display the version you installed.</p>
+
+<h3>Ensuring Compatible Enact CLI Versions for Enact 1.x Projects</h3>
+<p>Enact 1.x projects are best supported using an older version of the Enact CLI that matches the framework version. Using newer CLI versions (such as 6.x or 7.x) may cause compatibility issues due to changes in dependencies and React versions.</p>
+<ol>
+  <li><strong>Determine a compatible Enact CLI version:</strong> For Enact 1.x, use a CLI version released around the same timeframe, typically version 1.x or 2.x. For example:
+    <pre class="code-container"><code>npm install --save-dev @enact/cli@1.2.3</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+    Replace <code>1.2.3</code> with the appropriate version matching your framework.
+  </li>
+  <li><strong>Use the local CLI installation with npm scripts:</strong> Add CLI commands to <code>package.json</code>:
+    <pre class="code-container"><code>{
+  "scripts": {
+    "serve": "enact serve",
+    "pack": "enact pack"
+  }
+}</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+    This ensures that local CLI versions are used instead of any globally installed ones.
+  </li>
+  <li><strong>Run Enact commands using npm:</strong>
+    <pre class="code-container"><code>npm run serve
+npm run pack</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+  </li>
+  <li><strong>Verify installed versions:</strong>
+    <pre class="code-container"><code>npm list @enact/cli
+npm list @enact/core</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+    Confirm these match your intended Enact and CLI versions.
+  </li>
+</ol>
+<p>Always use project-local Enact CLI installations for reproducibility and version control. Avoid using globally installed CLI versions when working with older framework releases.</p>
+<p>With the environment ready, create a simple app. In your terminal:</p>
+<ol>
+  <li><strong>Create a project directory:</strong> Use the CLI template. For a basic web app:
+    <pre class="code-container">
+      <code>ares-generate -t basic HelloWorld</code>
+      <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+    </pre>
+    This makes a <code>HelloWorld/</code> folder containing <code>appinfo.json</code>, <code>index.html</code>, and other starter files.</li>
+  <li><strong>Edit the app files:</strong> Open <code>HelloWorld/appinfo.json</code> in VSCode. Set a unique <code>id</code>, and ensure <code>main</code> and <code>title</code> are correct. For example:
+    <pre><code>{
+  "id": "com.example.helloworld",
+  "version": "1.0.0",
+  "title": "HelloWorld",
+  "type": "web",
+  "main": "index.html",
+  "icon": "icon.png"
+}
+</code></pre>
+    Replace <code>com.example.helloworld</code> with your own namespace.  
+    Next, edit <code>index.html</code> (in the same folder) to show something visible:
+    <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;HelloWorld&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello, webOS TV!&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+    Save the files.</li>
+  <li><strong>Package the app:</strong> Still in the terminal, from the directory above <code>HelloWorld/</code>, run:
+    <pre class="code-container">
+      <code>ares-package ./HelloWorld</code>
+      <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+    </pre>
+    The CLI reads <code>appinfo.json</code> and creates <code>HelloWorld_1.0.0_all.ipk</code> in the current folder. (It minifies/merges files by default.)</li>
+  <li><strong>Install the app on TV:</strong> Send the IPK to the TV:
+    <pre class="code-container">
+      <code>ares-install --device myTV HelloWorld_1.0.0_all.ipk</code>
+      <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+    </pre>
+    The CLI installs the app via SSH. On success, you should see a confirmation. (If you encounter errors, ensure Dev Mode is on and the TV is reachable.)</li>
+  <li><strong>Launch the app:</strong> Run it on the TV:
+    <pre class="code-container">
+      <code>ares-launch --device myTV com.example.helloworld</code>
+      <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+    </pre>
+    Replace the app ID if different. The CLI will launch the app on the TV (<a href="https://webostv.developer.lge.com/develop/tools/cli-dev-guide#:~:text=Execute%20the%20%60ares,app%20on%20the%20target%20device" target="_blank" rel="noopener noreferrer">webostv.developer.lge.com</a>). You should see your “Hello, webOS TV!” message on the screen.</li>
+  <li><strong>Debug or Inspect (optional):</strong> While the app is running, you can open a debugger on your PC:
+    <pre class="code-container">
+      <code>ares-inspect --device myTV --app com.example.helloworld --open</code>
+      <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+    </pre>
+    This opens a browser Web Inspector (Chrome DevTools) to debug the app’s HTML/JS in real time (<a href="https://webostv.developer.lge.com/develop/tools/cli-dev-guide#:~:text=For%20debugging%20of%20web%20apps%2C,the%20execution%20information%20of%20apps" target="_blank" rel="noopener noreferrer">webostv.developer.lge.com</a>). This is useful for logging or fixing layout issues.</li>
+</ol>
+
+<h3>3. Install the Moonstone Template</h3>
+<p>To create a new Enact app using the Moonstone template, you need to install the template manually if it is not available by default. Run the following command:</p>
+<pre class="code-container">
+  <code>enact template install @enact/template-moonstone</code>
+  <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+</pre>
+<p>Once installed, you can create a new app using the Moonstone template:</p>
+<pre class="code-container">
+  <code>enact create --template moonstone MyApp</code>
+  <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+</pre>
+<p>This will generate a complete app with React, Babel, Moonstone components, and Webpack configuration.</p>
+<p>Navigate to the project directory and run the app locally:</p>
+<pre class="code-container">
+  <code>cd MyApp
+npm run serve</code>
+  <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+</pre>
+<p>Visit <code>http://localhost:8080</code> in your browser to confirm it runs.</p>
+
+<h3>Using Enact, Moonstone, and Babel: Full Project Setup</h3>
+<ol>
+  <li><strong>Install Enact CLI:</strong> Globally install Enact CLI, which sets up React + Moonstone projects.
+    <pre class="code-container"><code>npm install -g @enact/cli</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+  </li>
+  <li><strong>Create a new Enact app using the Moonstone template:</strong>
+    <pre class="code-container"><code>enact create --template moonstone enact-hello</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+    This generates a complete app with React, Babel, Moonstone components, and Webpack configuration.
+  </li>
+  <li><strong>Run the app locally:</strong> Test the build with:
+    <pre class="code-container"><code>cd enact-hello
+npm run serve</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+    Visit <code>http://localhost:8080</code> in your browser to confirm it runs.
+  </li>
+  <li><strong>Edit the main panel to show Hello World:</strong> Modify <code>src/views/MainPanel.js</code>:
+    <pre class="code-container"><code>import kind from '@enact/core/kind';
+import React from 'react';
+import {Header, Panel} from '@enact/moonstone/Panels';
+import BodyText from '@enact/moonstone/BodyText';
+import Button from '@enact/moonstone/Button';
+
+const MainPanel = kind({
+  name: 'MainPanel',
+  render: () => (
+    &lt;Panel&gt;
+      &lt;Header title="Hello World" /&gt;
+      &lt;BodyText&gt;This is a webOS TV app using Enact.&lt;/BodyText&gt;
+      &lt;Button onClick={() => alert('Hello')}&gt;Click Me&lt;/Button&gt;
+    &lt;/Panel&gt;
+  )
+});
+
+export default MainPanel;</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+  </li>
+  <li><strong>Build the app:</strong> Create a production build for packaging.
+    <pre class="code-container"><code>npm run pack</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+    Output will go into the <code>dist/</code> directory.
+  </li>
+  <li><strong>Create an appinfo.json file in the dist folder:</strong> Required for webOS packaging.
+    <pre class="code-container"><code>{
+  "id": "com.example.enacthello",
+  "version": "1.0.0",
+  "title": "Enact Hello",
+  "type": "web",
+  "main": "index.html",
+  "icon": "icon.png"
+}</code></pre>
+  </li>
+  <li><strong>Package the app:</strong>
+    <pre class="code-container"><code>ares-package dist</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+  </li>
+  <li><strong>Install and launch the app on the TV:</strong>
+    <pre class="code-container"><code>ares-install --device myTV dist_1.0.0_all.ipk
+ares-launch --device myTV com.example.enacthello</code><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></pre>
+  </li>
+</ol>
+<p>This process uses Babel for JSX/ES6 transpilation, Webpack for bundling, and Moonstone for UI components. You can now begin expanding your Enact project with more views and components.</p>
+
+<script>
+  function copyToClipboard(button) {
+    const codeBlock = button.previousElementSibling;
+    navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+      button.textContent = "Copied!";
+      setTimeout(() => (button.textContent = "Copy"), 2000);
+    });
+  }
+</script>
+</body>
+</html>

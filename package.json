@@ -1,0 +1,26 @@
+{
+  "name": "webos-enact-moonstone",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "enact serve",
+    "pack": "enact pack"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "volta": {
+    "node": "16.20.2"
+  },
+  "devDependencies": {
+    "@enact/cli": "^1.2.1",
+    "postcss-custom-properties": "^14.0.4",
+    "postcss-nested": "^7.0.2"
+  },
+  "dependencies": {
+    "@enact/core": "^1.13.4",
+    "@enact/moonstone": "^1.13.4"
+  }
+}
